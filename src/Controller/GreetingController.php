@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Contelizer\SyliusExamplePlugin\Controller;
+namespace Contelizer\SyliusSubscriptionPlugin\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
