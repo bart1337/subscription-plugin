@@ -1,0 +1,16 @@
+{
+    "name": "contelizer/subscription-plugin",
+    "type": "sylius-plugin",
+    "version": "0.0.1",
+    "description": "Plugin najlepszej firmy na świecie.",
+    "license": "MIT",
+    "require": {
+        "php": "^7.1",
+        "sylius/sylius": "~1.2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Contelizer\\SyliusSubscriptionPlugin\\": "src/"
+        }
+    }
+}
