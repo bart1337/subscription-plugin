@@ -1,0 +1,12 @@
+winzou_state_machine:
+    sylius_order_checkout:
+        callbacks:
+            after:
+                contelizer_create_subscription:
+                    on: ["select_shipping", "address", "select_payment", "skip_shipping", "skip_payment"]
+                    do: ["@acme.syliusexampleplugin.subscription_service", "createSubscriptionAndAddOrder"]
+                    args: ["object"]
+                contelizer_split_orders:
+                    on: ["complete"]
+                    do: ["@acme.syliusexampleplugin.subscription_service", "splitSubscriptionOrders"]
+                    args: ["object"]

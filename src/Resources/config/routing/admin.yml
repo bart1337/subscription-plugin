@@ -1,0 +1,2 @@
+contelizer_admin_subscription:
+    resource: 'admin/subscription.yml'

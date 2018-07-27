@@ -1,0 +1,20 @@
+sylius_grid:
+    grids:
+        contelizer_admin_subscription:
+            driver:
+                name: doctrine/orm
+                options:
+                    class: Acme\SyliusExamplePlugin\Entity\Subscription
+            fields:
+                number:
+                    type: string
+                    label: sylius.ui.number
+            actions:
+                main:
+                    create:
+                        type: create
+                item:
+                    update:
+                        type: update
+                    delete:
+                        type: delete

@@ -1,0 +1,16 @@
+imports:
+    - { resource: "resources.yml" }
+    - { resource: "grids/grids.yml" }
+    - { resource: "state_machine.yml" }
+
+sylius_order:
+    resources:
+        order:
+            classes:
+                model: Acme\SyliusExamplePlugin\Entity\Order
+
+sylius_product:
+    resources:
+        product:
+            classes:
+                model: Acme\SyliusExamplePlugin\Entity\Product
