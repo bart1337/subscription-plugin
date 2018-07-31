@@ -3,20 +3,31 @@
 namespace Acme\SyliusExamplePlugin\Repository;
 
 use Acme\SyliusExamplePlugin\Entity\Subscription;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Bridge\Doctrine\RegistryInterface;
-
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping;
+use SyliusLabs\AssociationHydrator\AssociationHydrator;
+use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 /**
  * @method Subscription|null find($id, $lockMode = null, $lockVersion = null)
  * @method Subscription|null findOneBy(array $criteria, array $orderBy = null)
  * @method Subscription[]    findAll()
  * @method Subscription[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class SubscriptionRepository extends ServiceEntityRepository
+class SubscriptionRepository extends EntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    /**
+     * @var AssociationHydrator
+     */
+    private $associationHydrator;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct(EntityManager $entityManager, Mapping\ClassMetadata $class)
     {
-        parent::__construct($registry, Subscription::class);
+        parent::__construct($entityManager, $class);
+
+        $this->associationHydrator = new AssociationHydrator($entityManager, $class);
     }
 
 //    /**

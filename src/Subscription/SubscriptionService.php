@@ -10,14 +10,18 @@ use Acme\SyliusExamplePlugin\Entity\SubscriptionStates;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Bundle\OrderBundle\NumberAssigner\OrderNumberAssignerInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
+use Sylius\Component\Core\Model\AddressInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
+use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\Core\TokenAssigner\UniqueIdBasedOrderTokenAssigner;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Sylius\Component\Order\Modifier\OrderItemQuantityModifierInterface;
 use Sylius\Component\Order\Processor\CompositeOrderProcessor;
+use Sylius\Component\Payment\Factory\PaymentFactoryInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
@@ -32,6 +36,7 @@ class SubscriptionService
     private $compositeOrderProcessor;
     private $numberAssigner;
     private $tokenAssigner;
+    private $paymentFactory;
 
     public function __construct(
         LocaleContextInterface $localeContext
@@ -43,6 +48,7 @@ class SubscriptionService
         , CompositeOrderProcessor $compositeOrderProcessor
         , OrderNumberAssignerInterface $numberAssigner
         , UniqueIdBasedOrderTokenAssigner $tokenAssigner
+        , PaymentFactoryInterface $paymentFactory
     )
     {
         $this->localeContext = $localeContext;
@@ -54,6 +60,7 @@ class SubscriptionService
         $this->compositeOrderProcessor = $compositeOrderProcessor;
         $this->numberAssigner = $numberAssigner;
         $this->tokenAssigner = $tokenAssigner;
+        $this->paymentFactory = $paymentFactory;
 
     }
 
@@ -65,30 +72,19 @@ class SubscriptionService
     {
         try {
             //more than one item or product is not subscribable
-            if ($order->countItems() != 1 || !$order->getItems()[0]->getProduct()->isSubscribable()){
+            if ($order->countItems() != 1 || !$order->getItems()[0]->getProduct()->isSubscribable()) {
                 //Sylius sometimes uses previously created order, make sure to nullify subscription if so
-                if(null !== $order->getSubscription()){
+                if (null !== $order->getSubscription()) {
                     $order->setSubscription(null);
                     $this->entityManager->persist($order);
                     $this->entityManager->flush();
                 }
                 return false;
             }
-            //order already has subscription
             /** @var Subscription $subscription */
             $subscription = $order->getSubscription();
-            if ($subscription !== null){
-                //lets check if quantity wasn't changed
-
-                /** @var OrderItemInterface $item */
-//                $orderItem = $order->getItems()[0];
-//                $quantity = $orderItem->getQuantity();
-//                if($subscription->getCycles() !== $quantity){
-//                    $subscription->setCycles($quantity);
-//                    $this->entityManager->persist($subscription);
-//                    $this->entityManager->flush();
-//                }
-
+            //order already has subscription
+            if ($subscription !== null) {
                 return false;
             }
         } catch (\Exception $exception) {
@@ -112,8 +108,6 @@ class SubscriptionService
         $orderItem = $order->getItems()[0];
         $quantity = $orderItem->getQuantity();
         $subscription->setCycles($quantity);
-//        $this->itemQuantityModifier->modify($orderItem, 1);
-//        $this->compositeOrderProcessor->process($order);
         $this->entityManager->persist($subscription);
         $this->entityManager->flush();
         return true;
@@ -123,12 +117,12 @@ class SubscriptionService
     {
         //Check if subscription order
         $subscription = $order->getSubscription();
-        if(null == $subscription){
+        if (null == $subscription) {
             return false;
         }
 
-        if ($order->countItems() != 1){
-           //more than one item? shouldn't happen!
+        if ($order->countItems() != 1) {
+            //more than one item? shouldn't happen!
             throw new BadRequestHttpException('Something is not right :(');
         }
 
@@ -140,37 +134,71 @@ class SubscriptionService
         #TODO: validate subscription cycles == quantity
 
 
-        //Duplicate orders
+        /** @var PaymentInterface $payment */
+        $basePayment = $order->getPayments()->first();
+        /** @var PaymentMethodInterface $paymentMethod */
+        $basePaymentMethod = $basePayment->getMethod();
+        /** @var string $currencyCode */
+        $baseCurrencyCode = $basePayment->getCurrencyCode();
+        /** @var AddressInterface $baseShippingAddress */
+        $baseShippingAddress = $order->getShippingAddress();
+        /** @var AddressInterface $baseBillingAddress */
+        $baseBillingAddress = $order->getBillingAddress();
+
+
         $this->itemQuantityModifier->modify($orderItem, 1);
-        $this->compositeOrderProcessor->process($order);
-        $orderPayment = $order->getPayments()->first();
-        $orderShippingAddress = $order->getShippingAddress();
-        $orderBillingAddress = $order->getBillingAddress();
+        $order->getPayments()->clear();
+        /** @var PaymentInterface $payment */
+        $payment = $this->paymentFactory->createNew();
+        $payment->setMethod($basePaymentMethod);
+        $payment->setCurrencyCode($baseCurrencyCode);
+        $order->addPayment($payment);
         $order->setValidFrom(new \DateTime());
+        $this->compositeOrderProcessor->process($order);
         $this->entityManager->persist($order);
+
         $date = new \DateTime();
         $date->modify('midnight first day of next month')->modify(sprintf('+%d days', $subscription->getDayOfTheMonth() - 1));
-        for($i = 1; $i < $quantity; ++$i){
+        //Duplicate orders
+        for ($i = 1; $i < $quantity; ++$i) {
             $newOrder = clone $order;
             $newOrder->setNumber(null);
             $this->numberAssigner->assignNumber($newOrder);
-            $newOrder->setTokenValue(null);
-            $this->tokenAssigner->assignTokenValueIfNotSet($newOrder);
-            $newPayment = clone $orderPayment;
-            $newOrder->removePayment($orderPayment);
-            $newOrder->addPayment($newPayment);
-            $newShippingAddress = clone $orderShippingAddress;
-            $newOrder->setShippingAddress($newShippingAddress);
-            $newBillingAddress = clone $orderBillingAddress;
-            $newOrder->setBillingAddress($newBillingAddress);
+//            $newOrder->setTokenValue(null);
+            $this->tokenAssigner->assignTokenValue($newOrder);
+            /** @var PaymentInterface $payment */
+            $payment = $this->paymentFactory->createNew();
+            $payment->setMethod($basePaymentMethod);
+            $payment->setCurrencyCode($baseCurrencyCode);
+            $newOrder->addPayment($payment);
+            $newOrder->setShippingAddress(clone $baseShippingAddress);
+            $newOrder->setBillingAddress(clone $baseBillingAddress);
             $newOrder->setValidFrom(clone $date);
-            $date->modify("+1 month");
+            $this->compositeOrderProcessor->process($newOrder);
             $this->entityManager->persist($newOrder);
-
+            $date->modify("+1 month");
         }
         $subscription->setState(SubscriptionStates::STATE_IN_PROGRESS);
         $this->entityManager->persist($subscription);
         $this->entityManager->flush();
+    }
+
+    public function validateSubscriptionOrderBeforeComplete(Order $order)
+    {
+        //Check if subscription order
+        $subscription = $order->getSubscription();
+        if (null == $subscription) {
+            return false;
+        }
+        /** @var OrderItemInterface $item */
+        $orderItem = $order->getItems()[0];
+        $quantity = $orderItem->getQuantity();
+
+        if ($order->countItems() != 1                   //it shouldn't be possible!
+            || $subscription->getCycles() != $quantity //somebody changed quantity before last step?
+        ) {
+            throw new BadRequestHttpException('Something is not right :(');
+        }
     }
 
 

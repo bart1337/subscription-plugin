@@ -1,0 +1,24 @@
+sylius_grid:
+    grids:
+        sylius_admin_order:
+          fields:
+            subscription:
+               type: twig
+               label: "Typ"
+               path: .
+               sortable: ~
+               position: 3
+               options:
+                 template: "@SyliusAdmin/Order/Grid/Field/sub.html.twig"
+          filters:
+            subscription:
+              type: exists
+              label: "Subskrypcja"
+        sylius_shop_account_order:
+           fields:
+              subscription:
+                type: twig
+                label: 'Typ'
+                sortable: ~
+                options:
+                  template: "@SyliusShop/Account/Order/Grid/Field/sub.html.twig"

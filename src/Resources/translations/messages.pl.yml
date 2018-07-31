@@ -1,0 +1,7 @@
+app:
+  ui:
+    subscriptions: "Subskrypcje"
+    supplier: "Zarządzaj subskrypcjami"
+    cycles: "Cykle"
+    active_from: "Aktywna od"
+    total: "W sumie"

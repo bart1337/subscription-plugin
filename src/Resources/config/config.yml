@@ -2,7 +2,12 @@ imports:
     - { resource: "resources.yml" }
     - { resource: "grids/grids.yml" }
     - { resource: "state_machine.yml" }
-
+sylius_resource:
+    resources:
+      app.subscription:
+          classes:
+            model: Acme\SyliusExamplePlugin\Entity\Subscription
+            repository: Acme\SyliusExamplePlugin\Repository\SubscriptionRepository
 sylius_order:
     resources:
         order:

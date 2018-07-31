@@ -1,8 +1,8 @@
 contelizer_admin_subscription:
     resource: |
-        alias: contelizer.subscription
+        alias: app.subscription
         section: admin
-        templates: SyliusAdminBundle:Crud
+        templates: SyliusAdminBundle:Subscription
         redirect: update
         grid: contelizer_admin_subscription
         vars:

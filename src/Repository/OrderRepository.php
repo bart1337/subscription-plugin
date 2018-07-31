@@ -14,6 +14,23 @@ use Sylius\Component\Core\Model\OrderInterface;
 
 class OrderRepository extends BaseRepository
 {
+    /**
+     * {@inheritdoc}
+     */
+    public function createListQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('o')
+            ->addSelect('channel')
+            ->addSelect('customer')
+            ->innerJoin('o.channel', 'channel')
+            ->leftJoin('o.customer', 'customer')
+            ->andWhere('o.state != :state')
+            ->andWhere('o.valid_from < :now_time')
+            ->setParameter('now_time', new \DateTime())
+            ->setParameter('state', OrderInterface::STATE_CART)
+            ;
+    }
+
     public function createByCustomerAndChannelIdQueryBuilder($customerId, $channelId): QueryBuilder
     {
         return $this->createQueryBuilder('o')
