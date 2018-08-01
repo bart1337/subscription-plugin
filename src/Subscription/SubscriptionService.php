@@ -73,7 +73,7 @@ class SubscriptionService
         try {
             //more than one item or product is not subscribable
             if ($order->countItems() != 1 || !$order->getItems()[0]->getProduct()->isSubscribable()) {
-                //Sylius sometimes uses previously created order, make sure to nullify subscription if so
+                //Sylius sometimes uses previously created order, make sure to nullify subscription
                 if (null !== $order->getSubscription()) {
                     $order->setSubscription(null);
                     $this->entityManager->persist($order);
