@@ -131,7 +131,11 @@ class SubscriptionService
         $orderItem = $order->getItems()[0];
         $quantity = $orderItem->getQuantity();
 
-        #TODO: validate subscription cycles == quantity
+        if($quantity != $subscription->getCycles()){
+            //somebody changed quantity during checkout process
+            $subscription->setCycles($quantity);
+        }
+
 
 
         /** @var PaymentInterface $payment */
@@ -155,8 +159,11 @@ class SubscriptionService
         $order->addPayment($payment);
         $order->setValidFrom(new \DateTime());
         $this->compositeOrderProcessor->process($order);
+        $payment->setState('new');
+        $this->entityManager->remove($basePayment);
+        $this->entityManager->persist($payment);
         $this->entityManager->persist($order);
-
+        $this->entityManager->flush();
         $date = new \DateTime();
         $date->modify('midnight first day of next month')->modify(sprintf('+%d days', $subscription->getDayOfTheMonth() - 1));
         //Duplicate orders
@@ -175,30 +182,14 @@ class SubscriptionService
             $newOrder->setBillingAddress(clone $baseBillingAddress);
             $newOrder->setValidFrom(clone $date);
             $this->compositeOrderProcessor->process($newOrder);
+            $payment->setState('new');
+            $this->entityManager->persist($payment);
             $this->entityManager->persist($newOrder);
             $date->modify("+1 month");
         }
         $subscription->setState(SubscriptionStates::STATE_IN_PROGRESS);
         $this->entityManager->persist($subscription);
         $this->entityManager->flush();
-    }
-
-    public function validateSubscriptionOrderBeforeComplete(Order $order)
-    {
-        //Check if subscription order
-        $subscription = $order->getSubscription();
-        if (null == $subscription) {
-            return false;
-        }
-        /** @var OrderItemInterface $item */
-        $orderItem = $order->getItems()[0];
-        $quantity = $orderItem->getQuantity();
-
-        if ($order->countItems() != 1                   //it shouldn't be possible!
-            || $subscription->getCycles() != $quantity //somebody changed quantity before last step?
-        ) {
-            throw new BadRequestHttpException('Something is not right :(');
-        }
     }
 
 

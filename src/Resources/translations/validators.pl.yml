@@ -1,0 +1,3 @@
+contelizer:
+    order:
+      subscription_not_valid: "Nie udało się sfinalizować procesu zamówienia subskrypcyjnego."
