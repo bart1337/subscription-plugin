@@ -21,6 +21,7 @@ contelizer_shop_account_subscription_show:
         arguments:
         - $id
         - "expr:service('sylius.context.customer').getCustomer()"
+
 customer_cancel_subscription:
   path: /subscription/cancel/{id}
   defaults:

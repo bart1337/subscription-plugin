@@ -1,95 +1,14 @@
-{% extends 'SyliusAdminBundle::layout.html.twig' %}
+{% extends '@SyliusShop/Account/layout.html.twig' %}
 
-{% block title %}Subskrybcja #{{ resource.id }} {{ parent() }}{% endblock %}
+{% block breadcrumb %}
+    {% include 'AcmeSyliusExamplePlugin:Account/Subscription/Show:_breadcrumb.html.twig' %}
+{% endblock %}
 
-{#{% set customer = order.customer %}#}
-
-{% block content %}
-    {#{{ sonata_block_render_event('sylius.admin.order.show.before_header', {'resource': resource}) }}#}
-
-    <div class="ui stackable two column grid">
-        <div class="ten wide column">
-            {% include '@SyliusAdmin/Subscription/Show/_header.html.twig' %}
-        </div>
-
-        {#{% set menu = knp_menu_get('sylius.admin.subscription.show', [], {'subscription': subscription}) %}#}
-        {#{{ knp_menu_render(menu, {'template': '@SyliusUi/Menu/top.html.twig'}) }}#}
-    </div>
-
-    {{ sonata_block_render_event('sylius.admin.order.show.after_header', {'resource': resource}) }}
-
-    {% include '@SyliusAdmin/Subscription/Show/_breadcrumb.html.twig' %}
-
-    {{ sonata_block_render_event('sylius.admin.order.show.after_breadcrumb', {'resource': resource}) }}
-
-    <div class="ui stackable grid">
-        <div class="twelve wide column">
-            {{ sonata_block_render_event('sylius.admin.order.show.before_summary', {'resource': resource}) }}
-
-            <div class="ui segment">
-                {% include '@SyliusAdmin/Subscription/Show/_subscriptions.html.twig' %}
-            </div>
-            {{ sonata_block_render_event('sylius.admin.order.show.after_summary', {'resource': resource}) }}
-
-            {% if resource.notes is not null %}
-                <h4 class="ui top attached styled header">
-                    {{ 'sylius.ui.notes'|trans }}
-                </h4>
-                <div class="ui attached segment" id="sylius-order-notes">
-                    {{ resource.notes }}
-                </div>
-            {% endif %}
-        </div>
-        <div class="four wide column">
-            {{ sonata_block_render_event('sylius.admin.order.show.before_customer_information', {'resource': resource}) }}
-            {% if resource.state != 'cancelled' %}
-            <div class="ui fluid card" id="subscription_managment">
-                <div class="content">
-                    <a href="{{ path('admin_cancel_subscription', {'id': resource.id}) }}" class="ui red labeled icon button">
-                        <i class="trash icon"></i>
-                        {{ 'app.ui.cancel_subscription'|trans }}
-                    </a>
-                </div>
-            </div>
-            {% endif %}
-            <div class="ui fluid card" id="customer">
-                <div class="content">
-                    <a href="{{ path('sylius_admin_customer_show', {'id': resource.customer.id}) }}"
-                       class="header sylius-customer-name">{{ resource.customer.fullName }}</a>
-                    <div class="meta">
-                        <span class="date">{{ 'sylius.ui.customer_since'|trans }} {{ resource.customer.createdAt|format_date }}
-                            .</span>
-                    </div>
-                </div>
-                <div class="extra content">
-                    <a href="mailto:{{ resource.customer.email }}">
-                        <i class="envelope icon"></i>
-                        {{ resource.customer.email }}
-                    </a>
-                </div>
-                {% if resource.customer.phoneNumber is not empty %}
-                    <div class="extra content">
-                        <span>
-                            <i class="phone icon"></i>
-                            {{ resource.customer.phoneNumber }}
-                        </span>
-                    </div>
-                {% endif %}
-            </div>
+{% block subcontent %}
+    Podgląd subskrypcji
+    {% include 'AcmeSyliusExamplePlugin:Account/Subscription/Show:_header.html.twig' %}
 
 
-            {{ sonata_block_render_event('sylius.admin.order.show.before_addresses', {'resource': resource}) }}
+    {#{% include '@SyliusShop/Common/Order/_summary.html.twig' %}#}
 
-            {#{% include '@SyliusAdmin/Order/Show/_addresses.html.twig' %}#}
-
-            {{ sonata_block_render_event('sylius.admin.order.show.before_payments', {'resource': resource}) }}
-
-            {#{% include '@SyliusAdmin/Order/Show/_payments.html.twig' %}#}
-            {#{% include '@SyliusAdmin/Order/Show/_shipments.html.twig' %}#}
-
-            {{ sonata_block_render_event('sylius.admin.order.show.after_shipments', {'resource': resource}) }}
-        </div>
-    </div>
-
-    {{ sonata_block_render_event('sylius.admin.order.show.after_content', {'resource': resource}) }}
 {% endblock %}
