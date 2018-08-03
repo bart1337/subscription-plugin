@@ -1,0 +1,9 @@
+<div class="ui breadcrumb">
+    <a href="{{ path('sylius_shop_homepage') }}" class="section">{{ 'sylius.ui.home'|trans }}</a>
+    <div class="divider"> / </div>
+    <a href="{{ path('sylius_shop_account_dashboard') }}" class="section">{{ 'sylius.ui.my_account'|trans }}</a>
+    <div class="divider"> / </div>
+    <a href="{{ path('contelizer_shop_account_subscription_index') }}" class="section">{{ 'app.ui.my_subscriptions'|trans }}</a>
+    <div class="divider"> / </div>
+    <div class="active section">{{ 'app.ui.subscription'|trans }} <span id="number">#{{ subscription.id }}</span></div>
+</div>

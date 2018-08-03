@@ -1,0 +1,35 @@
+sylius_grid:
+  grids:
+    contelizer_shop_account_subscription:
+      driver:
+        name: doctrine/orm
+        options:
+          class: Acme\SyliusExamplePlugin\Entity\Subscription
+      fields:
+        cycles:
+          type: twig
+          label: app.ui.cycles
+          options:
+            template: "@SyliusAdmin/Subscription/Grid/Field/num.html.twig"
+        state:
+          type: twig
+          label: sylius.ui.state
+          sortable: ~
+          options:
+            template: "@SyliusUi/Grid/Field/state.html.twig"
+            vars:
+              labels: "@SyliusAdmin/Order/Label/State"
+        createdAt:
+          type: datetime
+          label: sylius.ui.creation_date
+          options:
+            format: d-m-Y H:i:s
+        updatedAt:
+          type: datetime
+          label: sylius.ui.updating_date
+          options:
+            format: d-m-Y H:i:s
+      actions:
+        item:
+          show:
+            type: show

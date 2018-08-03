@@ -1,0 +1,3 @@
+contelizer_shop_account_subscription:
+  resource: "account/subscription.yml"
+  prefix: /subscriptions

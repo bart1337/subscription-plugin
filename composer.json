@@ -1,7 +1,7 @@
 {
     "name": "contelizer/subscription-plugin",
     "type": "sylius-plugin",
-    "version": "1.2",
+    "version": "1.2.1",
     "description": "Plugin najlepszej firmy na świecie.",
     "license": "MIT",
     "require": {

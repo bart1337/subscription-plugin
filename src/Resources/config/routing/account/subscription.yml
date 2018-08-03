@@ -1,0 +1,23 @@
+contelizer_shop_account_subscription_index:
+  path: /
+  methods: [GET]
+  defaults:
+    _controller: contelizer.controller.subscription:indexAction
+    _sylius:
+      section: shop_account
+      template: "@AcmeSyliusExamplePlugin/Account/Subscription/index.html.twig"
+      grid: contelizer_shop_account_subscription
+
+contelizer_shop_account_subscription_show:
+  path: /{id}
+  methods: [GET]
+  defaults:
+    _controller: contelizer.controller.subscription:showAction
+    _sylius:
+      section: shop_account
+      template: "@AcmeSyliusExamplePlugin/Account/Subscription/show.html.twig"
+      repository:
+        method: findOneByIdAndCustomer
+        arguments:
+        - $id
+        - "expr:service('sylius.context.customer').getCustomer()"
