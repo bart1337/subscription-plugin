@@ -34,7 +34,7 @@ class Order extends BaseOrder
 
     public function isSubscriptionType() : bool
     {
-        return null != $this->subscription;
+        return null !== $this->subscription;
     }
 
     /**

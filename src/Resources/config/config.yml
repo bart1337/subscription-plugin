@@ -1,21 +1,16 @@
 imports:
-    - { resource: "resources.yml" }
-    - { resource: "grids/grids.yml" }
-    - { resource: "state_machine.yml" }
-sylius_resource:
-    resources:
-      app.subscription:
-          classes:
-            model: Acme\SyliusExamplePlugin\Entity\Subscription
-            repository: Acme\SyliusExamplePlugin\Repository\SubscriptionRepository
+- { resource: "resources.yml" }
+- { resource: "grids/grids.yml" }
+- { resource: "state_machine.yml" }
+
 sylius_order:
-    resources:
-        order:
-            classes:
-                model: Acme\SyliusExamplePlugin\Entity\Order
+  resources:
+    order:
+      classes:
+        model: Acme\SyliusExamplePlugin\Entity\Order
 
 sylius_product:
-    resources:
-        product:
-            classes:
-                model: Acme\SyliusExamplePlugin\Entity\Product
+  resources:
+    product:
+      classes:
+        model: Acme\SyliusExamplePlugin\Entity\Product

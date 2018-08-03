@@ -5,7 +5,7 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                                       http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    <mapped-superclass name="Acme\SyliusExamplePlugin\Entity\Subscription" table="contelizer_subscription">
+    <entity name="Acme\SyliusExamplePlugin\Entity\Subscription" table="contelizer_subscription" repository-class="Acme\SyliusExamplePlugin\Repository\SubscriptionRepository">
         <id name="id" column="id" type="integer">
             <generator strategy="AUTO" />
         </id>
@@ -34,6 +34,6 @@
         </many-to-one>
 
         <one-to-many field="orders" target-entity="Acme\SyliusExamplePlugin\Entity\Order" mapped-by="subscription" />
-    </mapped-superclass>
+    </entity>
 
 </doctrine-mapping>

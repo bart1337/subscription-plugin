@@ -1,6 +1,6 @@
 contelizer_admin_subscription:
     resource: |
-        alias: app.subscription
+        alias: contelizer.subscription
         section: admin
         templates: SyliusAdminBundle:Subscription
         redirect: update
@@ -9,5 +9,5 @@ contelizer_admin_subscription:
             all:
                 subheader: app.ui.supplier
             index:
-                icon: 'file image outline'
+                icon: 'sync'
     type: sylius.resource

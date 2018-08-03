@@ -1,40 +1,34 @@
 services:
-    app.block_event_listener.sylius.shop.layout.javascripts:
-        class: Sylius\Bundle\UiBundle\Block\BlockEventListener
-        arguments:
-            - '@@AcmeSyliusExamplePlugin/_javascripts.html.twig'
-        tags:
-            - { name: kernel.event_listener, event: sonata.block.event.sylius.shop.layout.javascripts, method: onBlockEvent }
-    acme.syliusexampleplugin.subscription_service:
-        public: true
-        class: Acme\SyliusExamplePlugin\Subscription\SubscriptionService
-        arguments:
-            - "@sylius.context.locale"
-            - "@sylius.context.channel"
-            - "@sylius.repository.customer"
-            - "@security.token_storage"
-            - "@doctrine.orm.default_entity_manager"
-            - "@sylius.order_item_quantity_modifier"
-            - "@sylius.order_processing.order_processor"
-            - "@sylius.order_number_assigner"
-            - "@sylius.unique_id_based_order_token_assigner"
-            - "@sylius.factory.payment"
-#        calls:
-#            - [setService, ["@service_id"]]
-#        tags:
-#            - { name: twig.extension }
-#            - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
-    app.form.type.product:
-        class: Acme\SyliusExamplePlugin\Form\Type\ProductType
-        tags:
-            - { name: form.type_extension, extended_type: Sylius\Bundle\ProductBundle\Form\Type\ProductType }
+  acme.syliusexampleplugin.subscription_service:
+    public: true
+    class: Acme\SyliusExamplePlugin\Subscription\SubscriptionService
+    arguments:
+    - "@sylius.context.locale"
+    - "@sylius.context.channel"
+    - "@sylius.repository.customer"
+    - "@security.token_storage"
+    - "@doctrine.orm.default_entity_manager"
+    - "@sylius.order_item_quantity_modifier"
+    - "@sylius.order_processing.order_processor"
+    - "@sylius.order_number_assigner"
+    - "@sylius.unique_id_based_order_token_assigner"
+    - "@sylius.factory.payment"
+  app.form.type.product:
+    class: Acme\SyliusExamplePlugin\Form\Type\ProductType
+    tags:
+    - { name: form.type_extension, extended_type: Sylius\Bundle\ProductBundle\Form\Type\ProductType }
 
-    app.form.type.cart_item:
-        class: Acme\SyliusExamplePlugin\Form\Type\CartItemType
-        tags:
-            - { name: form.type_extension, extended_type: Sylius\Bundle\OrderBundle\Form\Type\CartItemType }
+  app.form.type.cart_item:
+    class: Acme\SyliusExamplePlugin\Form\Type\CartItemType
+    tags:
+    - { name: form.type_extension, extended_type: Sylius\Bundle\OrderBundle\Form\Type\CartItemType }
 
-#    app.listener.admin.menu_builder:
-#            class: Acme\SyliusExamplePlugin\EventListener\Menu\AdminOrderShowMenuListener
-#            tags:
-#                - { name: kernel.event_listener, event: sylius.menu.admin.main, method: addAdminMenuItems }
+  app.listener.shop.menu_builder:
+    class: Acme\SyliusExamplePlugin\Menu\AccountMenuListener
+    tags:
+    - { name: kernel.event_listener, event: sylius.menu.shop.account, method: addAccountMenuItems }
+
+  app.listener.admin.menu_builder:
+    class: Acme\SyliusExamplePlugin\Menu\AdminMenuListener
+    tags:
+    - { name: kernel.event_listener, event: sylius.menu.admin.main, method: addAdminMenuItems }

@@ -23,9 +23,7 @@ class OrderSubscriptionValidator extends ConstraintValidator
         /** @var OrderSubscription $constraint */
         Assert::isInstanceOf($constraint, OrderSubscription::class);
 
-        /** @var Subscription $subscription */
-        $subscription = $order->getSubscription();
-        if (null != $subscription) {
+        if ($order->isSubscriptionType()) {
             /** @var int $countItems */
             $countItems = $order->countItems();
             if ($countItems != 1) {

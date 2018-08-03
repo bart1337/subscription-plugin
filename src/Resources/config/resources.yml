@@ -1,6 +1,7 @@
 sylius_resource:
-    resources:
-        contelizer.subscription:
-            driver: doctrine/orm
-            classes:
-                model: Acme\SyliusExamplePlugin\Entity\Subscription
+  resources:
+    contelizer.subscription:
+      driver: doctrine/orm
+      classes:
+        model: Acme\SyliusExamplePlugin\Entity\Subscription
+        repository: Acme\SyliusExamplePlugin\Repository\SubscriptionRepository

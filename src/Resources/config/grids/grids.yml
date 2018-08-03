@@ -1,3 +1,4 @@
 imports:
     - { resource: 'admin/subscription.yml' }
+    - { resource: 'account/subscription.yml' }
     - { resource: 'admin/order.yml' }

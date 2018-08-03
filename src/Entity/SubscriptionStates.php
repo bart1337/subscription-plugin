@@ -14,4 +14,5 @@ final class SubscriptionStates
     public const STATE_CART = 'cart';
     public const STATE_IN_PROGRESS = 'in_progress';
     public const STATE_COMPLETED = 'completed';
+    public const STATE_CANCELLED = 'cancelled';
 }

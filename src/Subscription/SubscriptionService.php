@@ -73,18 +73,16 @@ class SubscriptionService
         try {
             //more than one item or product is not subscribable
             if ($order->countItems() != 1 || !$order->getItems()[0]->getProduct()->isSubscribable()) {
-                //Sylius sometimes uses previously created order, make sure to nullify subscription
-                if (null !== $order->getSubscription()) {
+                //Sylius sometimes uses previously created order, make sure to nullify subscription if so
+                if ($order->isSubscriptionType()) {
                     $order->setSubscription(null);
                     $this->entityManager->persist($order);
                     $this->entityManager->flush();
                 }
                 return false;
             }
-            /** @var Subscription $subscription */
-            $subscription = $order->getSubscription();
             //order already has subscription
-            if ($subscription !== null) {
+            if ($order->isSubscriptionType()) {
                 return false;
             }
         } catch (\Exception $exception) {
@@ -117,7 +115,7 @@ class SubscriptionService
     {
         //Check if subscription order
         $subscription = $order->getSubscription();
-        if (null == $subscription) {
+        if ($order->isSubscriptionType()) {
             return false;
         }
 
