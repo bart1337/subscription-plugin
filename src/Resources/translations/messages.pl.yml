@@ -8,6 +8,18 @@ app:
     total: "W sumie"
     my_subscriptions: "Moje subskrypcje"
     browse_my_subscriptions: "Sprawdź status swoich subskrypcji"
+    cancel_subscription: "Anuluj subskrypcję"
+contelizer:
+  ui:
+    subscriptions: "Subskrypcje"
+    subscription: "Subskrypcja"
+    supplier: "Zarządzaj subskrypcjami"
+    cycles: "Cykle"
+    active_from: "Aktywna od"
+    total: "W sumie"
+    my_subscriptions: "Moje subskrypcje"
+    browse_my_subscriptions: "Sprawdź status swoich subskrypcji"
+    cancel_subscription: "Anuluj subskrybcję"
 
 sylius:
   ui:

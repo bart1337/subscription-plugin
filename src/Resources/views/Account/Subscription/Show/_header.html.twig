@@ -1,29 +1,32 @@
-{#{% import '@SyliusUi/Macro/buttons.html.twig' as buttons %}#}
-{#{% import '@SyliusUi/Macro/flags.html.twig' as flags %}#}
+{% import '@SyliusUi/Macro/buttons.html.twig' as buttons %}
+{% import '@SyliusUi/Macro/flags.html.twig' as flags %}
+{% set subscription = resource %}
+{% import '@SyliusUi/Macro/buttons.html.twig' as buttons %}
+{% import '@SyliusUi/Macro/flags.html.twig' as flags %}
 
-{#<h1 class="ui header">#}
-    {#<i class="circular cart icon"></i>#}
-    {#<div class="content">#}
-        {#{{ 'sylius.ui.order'|trans }} #{{ order.number }}#}
-        {#<div class="sub header">#}
-            {#<div class="ui horizontal divided list">#}
-                {#<div class="item">#}
-                    {#{{ order.checkoutCompletedAt|format_date }}#}
-                {#</div>#}
-                {#<div class="item">#}
-                    {#{% include [('@SyliusShop/Account/Order/Label/State' ~ '/' ~ order.state ~ '.html.twig'), '@SyliusUi/Label/_default.html.twig'] with {'value': ('sylius.ui.' ~ order.state)|trans} %}#}
-                {#</div>#}
-                {#<div class="item">#}
-                    {#{{ order.currencyCode }}#}
-                {#</div>#}
-                {#<div class="item">#}
-                    {#{{ flags.fromLocaleCode(order.localeCode) }}{{ order.localeCode|locale }}#}
-                {#</div>#}
-            {#</div>#}
-        {#</div>#}
-    {#</div>#}
-{#</h1>#}
+<h1 class="ui header">
+    <i class="circular cart icon"></i>
+    <div class="content">
+        {{ 'app.ui.subscription'|trans }} #{{ subscription.id }}
+        <div class="sub header">
+            <div class="ui horizontal divided list">
+                <div class="item">
+                    {{ subscription.createdAt|format_date }}
+                </div>
+                <div class="item">
+                    {% include [('Acme/SyliusExamplePlugin/Account/Subscription/Label/State' ~ '/' ~ subscription.state ~ '.html.twig'), '@SyliusUi/Label/_default.html.twig'] with {'value': ('sylius.ui.' ~ subscription.state)|trans} %}
+                </div>
+                <div class="item">
+                    {{ flags.fromLocaleCode(subscription.localeCode) }}{{ subscription.localeCode|locale }}
+                </div>
+            </div>
+        </div>
+    </div>
+</h1>
 
-{#{% if order.paymentState in ['awaiting_payment'] %}#}
-    {#{{ buttons.default(path('sylius_shop_order_show', {'tokenValue': order.tokenValue}), 'sylius.ui.pay', null, 'credit card alternative', 'fluid blue') }}#}
-{#{% endif %}#}
+{% if subscription.state not in ['cancelled'] %}
+    <a href="{{ path('customer_cancel_subscription', {'id': subscription.id}) }}" class="ui red labeled icon button">
+        <i class="trash icon"></i>
+        {{ 'app.ui.cancel_subscription'|trans }}
+    </a>
+{% endif %}

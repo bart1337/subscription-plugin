@@ -5,3 +5,4 @@ sylius_resource:
       classes:
         model: Acme\SyliusExamplePlugin\Entity\Subscription
         repository: Acme\SyliusExamplePlugin\Repository\SubscriptionRepository
+        controller: Acme\SyliusExamplePlugin\Controller\SubscriptionController

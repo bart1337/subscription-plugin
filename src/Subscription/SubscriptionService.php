@@ -16,10 +16,12 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\Core\TokenAssigner\UniqueIdBasedOrderTokenAssigner;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
 use Sylius\Component\Order\Modifier\OrderItemQuantityModifierInterface;
+use Sylius\Component\Order\OrderTransitions;
 use Sylius\Component\Order\Processor\CompositeOrderProcessor;
 use Sylius\Component\Payment\Factory\PaymentFactoryInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -190,5 +192,32 @@ class SubscriptionService
         $this->entityManager->flush();
     }
 
+    /**
+     * @param Subscription $subscription
+     * @return int - liczba anulowanych zamówień
+     * @author Damian Frańczuk <damian.franczuk@contelizer.pl>
+     */
+    public function cancelSubscription(Subscription $subscription){
+        $orders = $subscription->getOrders();
+        $counter = 0;
+        foreach ($orders as $order){
+            $now = new \DateTime();
+            $validFrom = $order->getValidFrom();
+            $paymentState = $order->getPaymentState();
+            if($validFrom > $now && $paymentState === OrderPaymentStates::STATE_AWAITING_PAYMENT){
+                $bluemediaService = $this->container->get('app.services.bluemedia');
+                $bluemediaService->deactivateRecurring($order);
+                $stateMachineFactory = $this->container->get('sm.factory');
+                $stateMachineOrder = $stateMachineFactory->get($order, OrderTransitions::GRAPH);
+                $stateMachineOrder->apply(OrderTransitions::TRANSITION_CANCEL);
+                $this->container->get('sylius.manager.order')->flush();
+                $counter++;
+            }
+        }
+        $subscription->setState(SubscriptionStates::STATE_CANCELLED);
+        $this->entityManager->persist($subscription);
+        $this->entityManager->flush();
+        return $counter;
+    }
 
 }

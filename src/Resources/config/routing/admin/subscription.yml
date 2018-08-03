@@ -11,3 +11,7 @@ contelizer_admin_subscription:
             index:
                 icon: 'sync'
     type: sylius.resource
+admin_cancel_subscription:
+    path: /subscription/cancel/{id}
+    defaults:
+        _controller: contelizer.controller.subscription:cancelSubscription
