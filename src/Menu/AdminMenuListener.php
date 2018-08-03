@@ -28,7 +28,7 @@ final class AdminMenuListener
         $sales = $menu->getChildren()['sales'];
 
         $sales->addChild('subscriptions', [
-            'route' => 'app_admin_subscription_index',
+            'route' => 'contelizer_admin_subscription_index',
         ])
             ->setName('Subskrypcje')
             ->setLabelAttribute('icon', 'sync')
