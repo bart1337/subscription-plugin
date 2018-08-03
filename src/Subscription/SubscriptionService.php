@@ -117,7 +117,7 @@ class SubscriptionService
     {
         //Check if subscription order
         $subscription = $order->getSubscription();
-        if ($order->isSubscriptionType()) {
+        if (!$order->isSubscriptionType()) {
             return false;
         }
 
