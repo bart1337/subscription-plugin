@@ -3,8 +3,10 @@
 namespace Acme\SyliusExamplePlugin\Repository;
 
 use Acme\SyliusExamplePlugin\Entity\Subscription;
+use Acme\SyliusExamplePlugin\Entity\SubscriptionStates;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping;
+use League\Uri\QueryBuilder;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use SyliusLabs\AssociationHydrator\AssociationHydrator;
@@ -44,5 +46,20 @@ class SubscriptionRepository extends EntityRepository implements RepositoryInter
             ->getQuery()
             ->getOneOrNullResult()
             ;
+    }
+
+    /**
+     * @param CustomerInterface $customer
+     * @return QueryBuilder|null
+     * @author Dawid Majka <dawid.majka@contelizer.pl>
+     * @author Bartosz Nejman <bartosz.nejman@contelizer.pl>
+     */
+    public function getByCustomer(CustomerInterface $customer): ?\Doctrine\ORM\QueryBuilder
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.customer = :customer')
+            ->andWhere('s.state != :state')
+            ->setParameter('customer', $customer)
+            ->setParameter('state', SubscriptionStates::STATE_CART);
     }
 }

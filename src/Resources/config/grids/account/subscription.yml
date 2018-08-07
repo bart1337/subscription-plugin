@@ -5,6 +5,10 @@ sylius_grid:
         name: doctrine/orm
         options:
           class: Acme\SyliusExamplePlugin\Entity\Subscription
+          repository:
+            method: getByCustomer
+            arguments:
+              - "expr:service('sylius.context.customer').getCustomer()"
       fields:
         cycles:
           type: twig

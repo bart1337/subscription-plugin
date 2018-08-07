@@ -13,6 +13,15 @@ services:
     - "@sylius.order_number_assigner"
     - "@sylius.unique_id_based_order_token_assigner"
     - "@sylius.factory.payment"
+    - "@sylius.factory.order"
+    - "@sylius.factory.order_item"
+    - "@sylius.repository.order"
+    - "@sylius.factory.shipment"
+    - "@sylius.manager.order"
+    - "@sm.factory"
+    - "@app.services.bluemedia"
+
+
   app.form.type.product:
     class: Acme\SyliusExamplePlugin\Form\Type\ProductType
     tags:
