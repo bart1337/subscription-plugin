@@ -229,6 +229,8 @@ class SubscriptionService
             $this->compositeOrderProcessor->process($newOrder);
 
 //            $payment->setState('new');
+            $this->entityManager->persist($newOrder->getShippingAddress());
+            $this->entityManager->persist($newOrder->getBillingAddress());
             $this->entityManager->persist($payment);
             $this->entityManager->persist($newOrderItem);
             $this->entityManager->persist($newOrder);
