@@ -1,0 +1,8 @@
+winzou_state_machine:
+  sylius_payment:
+    callbacks:
+      after:
+        subscription_pay_ahead:
+          on: ["complete"]
+          do: ["@acme.syliusexampleplugin.subscription_service", "markPaidAheadOrdersAsPaid"]
+          args: ["object"]
