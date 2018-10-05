@@ -1,2 +1,3 @@
 imports:
     - { resource: "state_machine/order_state_machine.yml" }
+    - { resource: "state_machine/payment_state_machine.yml" }

@@ -17,6 +17,7 @@ use Sylius\Component\Core\Model\AddressInterface;
 use Sylius\Component\Core\Model\AdjustmentInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
+use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -275,6 +276,24 @@ class SubscriptionService
         $this->entityManager->flush();
     }
 
+    public function markPaidAheadOrdersAsPaid(PaymentInterface $payment)
+    {
+        /** @var Subscription $subscription */
+        $subscription = $payment->getOrder()->getSubscription();
+        if($subscription->isPaidAhead()){
+            $orders = $subscription->getOrders();
+            //skip main order which is paid already
+            $orders->removeElement($payment->getOrder());
+            foreach($orders as $order){
+                /** @var OrderInterface $order */
+                $order->setPaymentState(OrderPaymentStates::STATE_PAID);
+                $this->entityManager->persist($order);
+            }
+            $this->entityManager->flush();
+        }
+        return true;
+    }
+
     /**
      * @param Subscription $subscription
      * @return int - liczba anulowanych zamówień
@@ -295,7 +314,7 @@ class SubscriptionService
                 || $paymentState === OrderPaymentStates::STATE_CART
                 )){
                 try {
-                    $this->bluemediaService->deactivateRecurring($order);
+                    $this->blueMediaService->deactivateRecurring($order);
                 }catch(\Exception $e){
 
                 }
