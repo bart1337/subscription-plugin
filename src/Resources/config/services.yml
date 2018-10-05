@@ -20,6 +20,7 @@ services:
     - "@sylius.manager.order"
     - "@sm.factory"
     - "@app.services.bluemedia"
+    - "@sylius.factory.adjustment"
 
 
   app.form.type.product:

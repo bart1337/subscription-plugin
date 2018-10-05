@@ -65,6 +65,10 @@ class Subscription implements ResourceInterface
      */
     private $dayOfTheMonth = 5;
 
+    /**
+     * @var boolean
+     */
+    private $paidAhead = 0;
 
     public function __construct()
     {
@@ -241,7 +245,23 @@ class Subscription implements ResourceInterface
     }
 
 
+    /**
+     * @return bool
+     */
+    public function isPaidAhead(): bool
+    {
+        return $this->paidAhead;
+    }
 
+    /**
+     * @param bool $paidAhead
+     * @return Subscription
+     */
+    public function setPaidAhead(bool $paidAhead): self
+    {
+        $this->paidAhead = $paidAhead;
+        return $this;
+    }
 
 }
 

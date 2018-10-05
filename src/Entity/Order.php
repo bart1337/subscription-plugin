@@ -18,6 +18,43 @@ class Order extends BaseOrder
     private $valid_from;
 
     /**
+     * @var boolean
+     */
+    private $payAhead = false;
+
+    /**
+     * @return bool
+     * Added for convinience.
+     */
+    public function toBePaidAhead(): bool
+    {
+        return $this->payAhead;
+    }
+
+    /**
+     * @return bool
+     * This one is used by symfony forms etc.
+     */
+    public function isPayAhead(): bool
+    {
+        return $this->payAhead;
+    }
+
+    /**
+     * @param bool $payAhead
+     * @return Order
+     */
+    public function setPayAhead(bool $payAhead): self
+    {
+        $this->payAhead = $payAhead;
+        return $this;
+    }
+
+
+
+
+
+    /**
      * @return Subscription|null
      */
     public function getSubscription(): ?Subscription
@@ -65,7 +102,7 @@ class Order extends BaseOrder
         $this->items = new ArrayCollection();
         $this->shipments = new ArrayCollection();
         $this->adjustments = new ArrayCollection();
-//        $this->promotions = new ArrayCollection();
+        $this->payments = new ArrayCollection();
         $this->setShippingAddress(clone $this->getShippingAddress());
         $this->setBillingAddress(clone $this->getBillingAddress());
         $this->setCreatedAt(new \DateTime());

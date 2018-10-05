@@ -11,8 +11,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use SM\Factory\Factory;
 use Sylius\Bundle\OrderBundle\NumberAssigner\OrderNumberAssignerInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
+use Sylius\Component\Core\Factory\AddressFactoryInterface;
 use Sylius\Component\Core\Factory\CartItemFactory;
 use Sylius\Component\Core\Model\AddressInterface;
+use Sylius\Component\Core\Model\AdjustmentInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
@@ -25,18 +27,21 @@ use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
 use Sylius\Component\Core\TokenAssigner\UniqueIdBasedOrderTokenAssigner;
 use Sylius\Component\Locale\Context\LocaleContextInterface;
+use Sylius\Component\Order\Factory\AdjustmentFactoryInterface;
 use Sylius\Component\Order\Modifier\OrderItemQuantityModifierInterface;
 use Sylius\Component\Order\OrderTransitions;
 use Sylius\Component\Order\Processor\CompositeOrderProcessor;
 use Sylius\Component\Payment\Factory\PaymentFactoryInterface;
+use Sylius\Component\Promotion\Action\PromotionApplicator;
 use Sylius\Component\Resource\Factory\FactoryInterface;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use AppBundle\Services\BlueMedia;
 
 
 class SubscriptionService
 {
+    public const PAID_AHEAD = 'PAID_AHEAD';
+
     private $localeContext;
     private $channelContext;
     private $customerRepository;
@@ -54,6 +59,7 @@ class SubscriptionService
     private $orderManager;
     private $stateMachineFactory;
     private $blueMediaService;
+    private $adjustmentFactory;
 
     public function __construct(
         LocaleContextInterface $localeContext
@@ -73,6 +79,7 @@ class SubscriptionService
         , EntityManagerInterface $orderManager
         , Factory $stateMachineFactory
         , BlueMedia $blueMediaService
+        , AdjustmentFactoryInterface $adjustmentFactory
     )
     {
         $this->localeContext = $localeContext;
@@ -92,7 +99,7 @@ class SubscriptionService
         $this->orderManager = $orderManager;
         $this->stateMachineFactory = $stateMachineFactory;
         $this->blueMediaService = $blueMediaService;
-
+        $this->adjustmentFactory = $adjustmentFactory;
     }
 
     /**
@@ -144,6 +151,8 @@ class SubscriptionService
 
     public function splitSubscriptionOrders(Order $order)
     {
+        //TODO: Test with coupons,
+        //TODO: Adjust payments (pay once for all orders, set order_payment_status = paid)
         //Check if subscription order
         $subscription = $order->getSubscription();
         if (!$order->isSubscriptionType()) {
@@ -152,7 +161,7 @@ class SubscriptionService
 
         if ($order->countItems() != 1) {
             //more than one item? shouldn't happen!
-            throw new BadRequestHttpException('Something is not right :(');
+            throw new Exception('Something is not right :(');
         }
 
         //Get item quantity
@@ -163,6 +172,9 @@ class SubscriptionService
         if ($quantity != $subscription->getCycles()) {
             //somebody changed quantity during checkout process
             $subscription->setCycles($quantity);
+        }
+        if($order->toBePaidAhead()){
+            $subscription->setPaidAhead(true);
         }
 
 
@@ -182,6 +194,22 @@ class SubscriptionService
         $payment->setCurrencyCode($baseCurrencyCode);
         $order->addPayment($payment);
         $order->setValidFrom(new \DateTime());
+
+
+        if($subscription->isPaidAhead()){
+            //adding adjustments for other months
+            $totalPrice = $order->getTotal();
+            for ($i = 1; $i < $quantity; ++$i) {
+                /** @var AdjustmentInterface $adjustment */
+                $adjustment = $this->adjustmentFactory->createNew();
+                $adjustment->setNeutral(false);
+                $adjustment->setAmount($totalPrice);
+                $adjustment->setLabel(sprintf('Płatność z góry za miesiąc #%s', $i+1));
+                $adjustment->setType($this::PAID_AHEAD);
+                $order->addAdjustment($adjustment);
+            }
+        }
+
         $this->compositeOrderProcessor->process($order);
         $payment->setState('new');
         $this->entityManager->remove($basePayment);
@@ -196,17 +224,12 @@ class SubscriptionService
             $newOrder = clone $order;
             $newOrder->setNumber(null);
             $this->numberAssigner->assignNumber($newOrder);
-//            $newOrder->setTokenValue(null);
             $this->tokenAssigner->assignTokenValue($newOrder);
             /** @var PaymentInterface $payment */
             $payment = $this->paymentFactory->createNew();
             $payment->setMethod($basePaymentMethod);
             $payment->setCurrencyCode($baseCurrencyCode);
             $newOrder->addPayment($payment);
-
-//            $newOrder->setShippingAddress(clone $baseShippingAddress);
-//            $newOrder->setBillingAddress(clone $baseBillingAddress);
-//            $newOrder->getItems()->clear();
             $variant = $orderItem->getVariant();
             /** @var OrderItemInterface $newOrderItem */
             $newOrderItem = $this->orderItemFactory->createNew();
@@ -222,16 +245,24 @@ class SubscriptionService
             /** @var ShipmentInterface $shipment */
             $shipment = $order->getShipments()->first();
             $newShipment->setMethod($shipment->getMethod());
-//            $newOrder->getShipments()->clear();
             $newOrder->addShipment($newShipment);
             $newOrder->setValidFrom(clone $date);
             $newOrder->recalculateAdjustmentsTotal();
             $this->compositeOrderProcessor->process($newOrder);
 
-//            $payment->setState('new');
-            $this->entityManager->persist($newOrder->getShippingAddress());
-            $this->entityManager->persist($newOrder->getBillingAddress());
-            $this->entityManager->persist($payment);
+            if($subscription->isPaidAhead()){
+                /** @var AdjustmentInterface $adjustment */
+                $adjustment = $this->adjustmentFactory->createNew();
+                $adjustment->setNeutral(false);
+                $adjustment->setAmount(-$totalPrice);
+                $adjustment->setLabel(sprintf('Subskrypcja opłacona z góry', $i));
+                $adjustment->setType($this::PAID_AHEAD);
+                $newOrder->addAdjustment($adjustment);
+                $newOrder->getPayments()->clear();
+            }else{
+                $this->entityManager->persist($payment);
+            }
+
             $this->entityManager->persist($newOrderItem);
             $this->entityManager->persist($newOrder);
             $this->entityManager->persist($newShipment);
@@ -278,6 +309,32 @@ class SubscriptionService
         $this->entityManager->persist($subscription);
         $this->entityManager->flush();
         return $counter;
+    }
+
+    /**
+     * @param AddressInterface $originalAddress
+     * @return Address
+     * Almost same as __clone however this should be safer.
+     */
+    public function createAddress(AddressInterface $originalAddress)
+    {
+
+        /** @var Address $address */
+        $address = $this->addressFactory->createNew();
+        $address->setFirstName($originalAddress->getFirstName());
+        $address->setLastName($originalAddress->getLastName());
+        $address->setPhoneNumber($originalAddress->getPhoneNumber());
+        $address->setStreet($originalAddress->getStreet());
+        $address->setCompany($originalAddress->getCompany());
+        $address->setCity($originalAddress->getCity());
+        $address->setPostcode($originalAddress->getPostcode());
+        $address->setCountryCode($originalAddress->getCountryCode());
+        $address->setProvinceCode($originalAddress->getProvinceCode());
+        $address->setProvinceName($originalAddress->getProvinceName());
+        if(method_exists($originalAddress, 'getInpostCode') && method_exists($address, 'setInpostCode')){
+            $address->setInpostCode($originalAddress->getInpostCode());
+        }
+        return $address;
     }
 
 }
