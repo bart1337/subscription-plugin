@@ -35,6 +35,7 @@ use Sylius\Component\Order\Processor\CompositeOrderProcessor;
 use Sylius\Component\Payment\Factory\PaymentFactoryInterface;
 use Sylius\Component\Promotion\Action\PromotionApplicator;
 use Sylius\Component\Resource\Factory\FactoryInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use AppBundle\Services\BlueMedia;
 
@@ -140,6 +141,12 @@ class SubscriptionService
         $subscription->setChannel($channel);
         $subscription->addOrder($order);
         $subscription->setLocaleCode($localeCode);
+        $session = new Session();
+        $ahead = $session->get('ahead_payment', 0);
+        $session->remove('ahead_payment');
+        if ($ahead) {
+            $subscription->setPaidAhead(true);
+        }
 
         /** @var OrderItemInterface $item */
         $orderItem = $order->getItems()[0];
