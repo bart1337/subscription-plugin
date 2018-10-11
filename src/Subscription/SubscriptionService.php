@@ -174,7 +174,7 @@ class SubscriptionService
             //somebody changed quantity during checkout process
             $subscription->setCycles($quantity);
         }
-        if($order->toBePaidAhead()){
+        if ($order->toBePaidAhead()) {
             $subscription->setPaidAhead(true);
         }
 
@@ -197,7 +197,7 @@ class SubscriptionService
         $order->setValidFrom(new \DateTime());
 
 
-        if($subscription->isPaidAhead()){
+        if ($subscription->isPaidAhead()) {
             //adding adjustments for other months
             $totalPrice = $order->getTotal();
             for ($i = 1; $i < $quantity; ++$i) {
@@ -205,7 +205,7 @@ class SubscriptionService
                 $adjustment = $this->adjustmentFactory->createNew();
                 $adjustment->setNeutral(false);
                 $adjustment->setAmount($totalPrice);
-                $adjustment->setLabel(sprintf('Płatność z góry za miesiąc #%s', $i+1));
+                $adjustment->setLabel(sprintf('Płatność z góry za miesiąc #%s', $i + 1));
                 $adjustment->setType($this::PAID_AHEAD);
                 $order->addAdjustment($adjustment);
             }
@@ -251,7 +251,7 @@ class SubscriptionService
             $newOrder->recalculateAdjustmentsTotal();
             $this->compositeOrderProcessor->process($newOrder);
 
-            if($subscription->isPaidAhead()){
+            if ($subscription->isPaidAhead()) {
                 /** @var AdjustmentInterface $adjustment */
                 $adjustment = $this->adjustmentFactory->createNew();
                 $adjustment->setNeutral(false);
@@ -260,7 +260,7 @@ class SubscriptionService
                 $adjustment->setType($this::PAID_AHEAD);
                 $newOrder->addAdjustment($adjustment);
                 $newOrder->getPayments()->clear();
-            }else{
+            } else {
                 $this->entityManager->persist($payment);
             }
 
@@ -280,11 +280,11 @@ class SubscriptionService
     {
         /** @var Subscription $subscription */
         $subscription = $payment->getOrder()->getSubscription();
-        if($subscription->isPaidAhead()){
+        if ($subscription && $subscription->isPaidAhead()) {
             $orders = $subscription->getOrders();
             //skip main order which is paid already
             $orders->removeElement($payment->getOrder());
-            foreach($orders as $order){
+            foreach ($orders as $order) {
                 /** @var OrderInterface $order */
                 $order->setPaymentState(OrderPaymentStates::STATE_PAID);
                 $this->entityManager->persist($order);
@@ -308,14 +308,14 @@ class SubscriptionService
             $now = new \DateTime();
             $validFrom = $order->getValidFrom();
             $paymentState = $order->getPaymentState();
-            if($validFrom > $now &&
+            if ($validFrom > $now &&
                 (
                     $paymentState === OrderPaymentStates::STATE_AWAITING_PAYMENT
-                || $paymentState === OrderPaymentStates::STATE_CART
-                )){
+                    || $paymentState === OrderPaymentStates::STATE_CART
+                )) {
                 try {
                     $this->blueMediaService->deactivateRecurring($order);
-                }catch(\Exception $e){
+                } catch (\Exception $e) {
 
                 }
                 $stateMachineOrder = $this->stateMachineFactory->get($order, OrderTransitions::GRAPH);
@@ -350,7 +350,7 @@ class SubscriptionService
         $address->setCountryCode($originalAddress->getCountryCode());
         $address->setProvinceCode($originalAddress->getProvinceCode());
         $address->setProvinceName($originalAddress->getProvinceName());
-        if(method_exists($originalAddress, 'getInpostCode') && method_exists($address, 'setInpostCode')){
+        if (method_exists($originalAddress, 'getInpostCode') && method_exists($address, 'setInpostCode')) {
             $address->setInpostCode($originalAddress->getInpostCode());
         }
         return $address;
